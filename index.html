@@ -1,77 +1,1482 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
- <meta charset="UTF-8">
- <title>Login sencillo</title>
- <style>
- body {
- font-family: Arial, sans-serif;
- background: #f4f4f4;
- display: flex;
- justify-content: center;
- align-items: center;
- height: 100vh;
- margin: 0;
- }
- .login-card {
- background: white;
- padding: 24px;
- border-radius: 8px;
- box-shadow: 0 0 10px rgba(0,0,0,0.1);
- width: 280px;
- }
- .login-card h2 {
- margin-top: 0;
- text-align: center;
- }
- .form-group {
- margin-bottom: 12px;
- }
- label {
- display: block;
- margin-bottom: 4px;
- font-size: 14px;
- }
- input {
- width: 100%;
- padding: 8px;
- box-sizing: border-box;
- }
- button {
- width: 100%;
- padding: 10px;
- border: none;
- background: #007bff;
- color: white;
- font-weight: bold;
- cursor: pointer;
- border-radius: 4px;
- }
- button:hover {
- background: #0056b3;
- }
- </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Seguro &bull; Experiencia Cinematográfica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-cyan: #06b6d4;
+      --accent-pink: #f43f5e;
+      --accent-emerald: #10b981;
+      --card-bg: rgba(13, 17, 34, 0.62);
+      --card-border: rgba(255, 255, 255, 0.16);
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --input-bg: rgba(255, 255, 255, 0.05);
+      --input-border: rgba(255, 255, 255, 0.14);
+      --radius-lg: 26px;
+      --radius-md: 14px;
+      --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      background-color: #030712;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+      padding: 24px;
+      user-select: none;
+    }
+
+    /* ========================================================
+       FONDOS DINÁMICOS CINEMATOGRÁFICOS + EFECTO KEN BURNS
+    ======================================================== */
+    .viewport-bg {
+      position: fixed;
+      inset: -40px; /* Margen para efecto Parallax sin bordes blancos */
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      will-change: transform;
+      transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .bg-layer {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transform: scale(1);
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform, opacity;
+      animation: kenBurns 35s infinite alternate ease-in-out;
+    }
+
+    .bg-layer.active {
+      opacity: 1;
+    }
+
+    @keyframes kenBurns {
+      0% {
+        transform: scale(1.03) translate(0, 0);
+      }
+      50% {
+        transform: scale(1.14) translate(-1.5%, 1.2%);
+      }
+      100% {
+        transform: scale(1.08) translate(1.5%, -1%);
+      }
+    }
+
+    /* Filtro de color y degradado sutil para legibilidad de alto contraste */
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(10, 14, 29, 0.45) 0%, rgba(3, 7, 18, 0.88) 100%),
+                  linear-gradient(to bottom, rgba(3, 7, 18, 0.4) 0%, rgba(3, 7, 18, 0.75) 100%);
+      z-index: 1;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
+    }
+
+    /* Malla de cuadrícula tecnológica futurista */
+    .tech-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 55px 55px;
+      z-index: 2;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    /* Canvas de partículas interactivas */
+    #particleCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 3;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    /* ========================================================
+       TARJETA PRINCIPAL CON EFECTO 3D TILT & VIDRIO FROSTED
+    ======================================================== */
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 450px;
+      perspective: 1200px;
+    }
+
+    .login-card {
+      position: relative;
+      background: var(--card-bg);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 42px 38px;
+      box-shadow: 
+        0 35px 70px -15px rgba(0, 0, 0, 0.75),
+        0 0 1px 1.5px rgba(255, 255, 255, 0.18) inset,
+        0 1px 0 rgba(255, 255, 255, 0.35) inset;
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease-out, box-shadow 0.35s ease;
+      overflow: hidden;
+    }
+
+    /* Resplandor reflectante del cursor sobre la tarjeta */
+    .card-spotlight {
+      position: absolute;
+      top: var(--mouse-y, 50%);
+      left: var(--mouse-x, 50%);
+      transform: translate(-50%, -50%);
+      width: 440px;
+      height: 440px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(99, 102, 241, 0.15) 30%, transparent 68%);
+      pointer-events: none;
+      border-radius: 50%;
+      transition: opacity 0.4s ease;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .login-card:hover .card-spotlight {
+      opacity: 1;
+    }
+
+    /* Borde neón animado con barrido perimetral */
+    .login-card::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(6,182,212,0.6) 35%, rgba(99,102,241,0.5) 70%, rgba(244,63,94,0.4) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* ========================================================
+       ENCABEZADO, AVATAR CON PULSO VIVO
+    ======================================================== */
+    .header-area {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-avatar {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+      box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.65);
+      cursor: pointer;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+    }
+
+    .brand-avatar:hover {
+      transform: scale(1.08) rotate(5deg);
+      box-shadow: 0 16px 36px -4px rgba(6, 182, 212, 0.7);
+    }
+
+    .avatar-pulse {
+      position: absolute;
+      inset: -6px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(6, 182, 212, 0.6));
+      filter: blur(8px);
+      z-index: -1;
+      opacity: 0.65;
+      animation: avatarPulseAnim 3.2s infinite ease-in-out;
+    }
+
+    @keyframes avatarPulseAnim {
+      0%, 100% {
+        transform: scale(0.96);
+        opacity: 0.45;
+      }
+      50% {
+        transform: scale(1.16);
+        opacity: 0.85;
+      }
+    }
+
+    .brand-avatar svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    }
+
+    .header-area h1 {
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #ffffff 15%, #cbd5e1 60%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-area p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ========================================================
+       FORMULARIO, INPUTS FLOTANTES E INTERACTIVIDAD
+    ======================================================== */
+    form {
+      position: relative;
+      z-index: 2;
+    }
+
+    .input-field {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      height: 54px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-md);
+      padding: 0 46px 0 48px;
+      font-size: 14.5px;
+      color: var(--text-main);
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .input-wrapper input:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.22), 0 10px 20px -5px rgba(0,0,0,0.4);
+    }
+
+    /* Iconos del input (Izquierda con animación) */
+    .field-icon-left {
+      position: absolute;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      pointer-events: none;
+      transition: var(--transition-smooth);
+    }
+
+    .field-icon-left svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      transition: var(--transition-smooth);
+    }
+
+    .input-wrapper input:focus ~ .field-icon-left,
+    .input-wrapper input:not(:placeholder-shown) ~ .field-icon-left {
+      color: var(--accent-cyan);
+      transform: scale(1.12);
+    }
+
+    /* Animación de apertura de cerrojo del candado */
+    .lock-shackle {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: 18px 11px;
+    }
+
+    .input-wrapper.unlocked .lock-shackle,
+    .input-wrapper input:focus ~ .field-icon-left .lock-shackle {
+      transform: translateY(-3px) rotate(-14deg);
+    }
+
+    /* Floating Labels */
+    .input-field label {
+      position: absolute;
+      left: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: var(--transition-smooth);
+      transform-origin: left top;
+    }
+
+    .input-wrapper input:focus ~ label,
+    .input-wrapper input:not(:placeholder-shown) ~ label {
+      top: 0;
+      transform: translateY(-50%) scale(0.82);
+      background: #0f1428;
+      padding: 2px 10px;
+      border-radius: 6px;
+      color: #a5b4fc;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Botón Mostrar/Ocultar Contraseña */
+    .btn-toggle-eye {
+      position: absolute;
+      right: 14px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-toggle-eye:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-toggle-eye svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    /* Mensaje de validación / error */
+    .input-error-msg {
+      font-size: 12px;
+      color: var(--accent-pink);
+      margin-top: 6px;
+      padding-left: 6px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-field.has-error .input-wrapper input {
+      border-color: var(--accent-pink);
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.25);
+    }
+
+    .input-field.has-error .input-error-msg {
+      display: flex;
+      animation: errorShake 0.35s ease;
+    }
+
+    @keyframes errorShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* ========================================================
+       MEDIDOR DE SEGURIDAD DE CONTRASEÑA EN TIEMPO REAL
+    ======================================================== */
+    .strength-wrapper {
+      margin-top: -10px;
+      margin-bottom: 18px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .strength-wrapper.visible {
+      opacity: 1;
+      max-height: 48px;
+      margin-top: -6px;
+      margin-bottom: 20px;
+    }
+
+    .strength-bars {
+      display: flex;
+      gap: 5px;
+      height: 4px;
+      margin-bottom: 6px;
+    }
+
+    .bar-segment {
+      flex: 1;
+      height: 100%;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.12);
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+    .strength-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+
+    .strength-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Colores reactivos del medidor */
+    .strength-weak .bar-segment:nth-child(1) { background: #f43f5e; box-shadow: 0 0 8px rgba(244,63,94,0.6); }
+    .strength-weak .strength-label { color: #f43f5e; }
+
+    .strength-fair .bar-segment:nth-child(1),
+    .strength-fair .bar-segment:nth-child(2) { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.6); }
+    .strength-fair .strength-label { color: #f59e0b; }
+
+    .strength-strong .bar-segment { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+    .strength-strong .strength-label { color: #10b981; }
+
+    /* ========================================================
+       OPCIONES: RECORDAR & OLVIDÉ CONTRASEÑA
+    ======================================================== */
+    .form-extras {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+    }
+
+    .remember-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .remember-label:hover {
+      color: var(--text-main);
+    }
+
+    .remember-label input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .custom-box {
+      width: 19px;
+      height: 19px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+
+    .custom-box svg {
+      width: 13px;
+      height: 13px;
+      stroke: white;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      opacity: 0;
+      transform: scale(0.4) rotate(-15deg);
+      transition: var(--transition-smooth);
+    }
+
+    .remember-label input:checked ~ .custom-box {
+      background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+      border-color: transparent;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+    }
+
+    .remember-label input:checked ~ .custom-box svg {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .link-forgot {
+      color: #a5b4fc;
+      text-decoration: none;
+      position: relative;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .link-forgot::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1.5px;
+      bottom: -2px;
+      left: 0;
+      background: var(--accent-cyan);
+      transition: width 0.3s ease;
+    }
+
+    .link-forgot:hover {
+      color: #ffffff;
+    }
+
+    .link-forgot:hover::after {
+      width: 100%;
+    }
+
+    /* ========================================================
+       BOTÓN DE ENVÍO CON EFECTO SHIMMER Y ESTADOS DE CARGA
+    ======================================================== */
+    .btn-login {
+      width: 100%;
+      height: 52px;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #06b6d4 100%);
+      background-size: 200% 200%;
+      color: white;
+      font-size: 15.5px;
+      font-weight: 700;
+      font-family: inherit;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 14px 28px -6px rgba(99, 102, 241, 0.65);
+      transition: var(--transition-smooth);
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      background-position: right center;
+      box-shadow: 0 18px 36px -4px rgba(6, 182, 212, 0.65);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px -4px rgba(99, 102, 241, 0.6);
+    }
+
+    /* Reflejo brillante pasando sobre el botón */
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      transition: 0.65s ease;
+    }
+
+    .btn-login:hover::before {
+      left: 120%;
+    }
+
+    .btn-spinner {
+      display: none;
+      width: 22px;
+      height: 22px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spinLoader 0.75s linear infinite;
+    }
+
+    @keyframes spinLoader {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-login.loading .btn-text-content {
+      display: none;
+    }
+
+    .btn-login.loading .btn-spinner {
+      display: inline-block;
+    }
+
+    .btn-login.loading {
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    /* ========================================================
+       SEPARADOR & BOTONES DE LOGIN SOCIAL
+    ======================================================== */
+    .separator {
+      display: flex;
+      align-items: center;
+      margin: 26px 0 20px;
+      color: var(--text-dim);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .separator::before,
+    .separator::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .separator span {
+      padding: 0 12px;
+    }
+
+    .social-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-social {
+      flex: 1;
+      height: 46px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: var(--transition-smooth);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-social svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.25s ease;
+    }
+
+    .btn-social:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-social:hover svg {
+      transform: scale(1.15);
+    }
+
+    .signup-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .signup-footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .signup-footer a:hover {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    /* ========================================================
+       PANEL DE CONTROL FLOTANTE (SELECTOR DE FONDO & PARTICULAS)
+    ======================================================== */
+    .ambient-controls {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .controls-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .controls-title {
+        display: block;
+      }
+    }
+
+    .wallpaper-thumbs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .thumb-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      padding: 0;
+      background: #1e293b;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .thumb-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .thumb-btn.active {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.7);
+      transform: scale(1.08);
+    }
+
+    .toggle-particles-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .toggle-particles-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .toggle-particles-btn.active {
+      color: var(--accent-cyan);
+      border-color: rgba(6, 182, 212, 0.5);
+      background: rgba(6, 182, 212, 0.15);
+    }
+
+    .toggle-particles-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ========================================================
+       NOTIFICACIONES TOAST FLOTANTES
+    ======================================================== */
+    .toast-box {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 14px 20px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      transform: translateY(-90px);
+      opacity: 0;
+      transition: var(--transition-smooth);
+      z-index: 100;
+      max-width: 90vw;
+    }
+
+    .toast-box.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast-box.success .toast-badge {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .toast-box.error .toast-badge {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent-pink);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
+    .toast-text h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #ffffff;
+    }
+
+    .toast-text p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* Sacudida de error */
+    .shake-anim {
+      animation: cardShake 0.45s ease-in-out;
+    }
+
+    @keyframes cardShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-9px); }
+      40%, 80% { transform: translateX(9px); }
+    }
+
+    /* Adaptabilidad Móvil */
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+      .login-card {
+        padding: 34px 22px;
+        border-radius: 20px;
+      }
+      .ambient-controls {
+        bottom: 14px;
+        right: 14px;
+        left: 14px;
+        justify-content: space-between;
+      }
+      .header-area h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
 <body>
- <div class="login-card">
- <h2>Iniciar sesión</h2>
- <p style="font-size: 14px; color: #555; text-align: center;">
- Ingresa tus datos para acceder al sistema de prueba.
- </p>
- <form>
- <div class="form-group">
- <label for="usuario">Usuario</label>
- <input type="text" id="usuario" name="usuario" required>
- </div>
- <div class="form-group">
- <label for="password">Contraseña</label>
- <input type="password" id="password" name="password" required>
- </div>
- <button type="submit">Ingresar</button>
- </form>
- <p style="font-size: 12px; text-align: center; margin-top: 8px;">
- <a href="#">¿Olvidaste tu contraseña?</a>
- </p>
-</div>
+
+  <!-- ==========================================
+       FONDO FOTOGRÁFICO DINÁMICO & PARALLAX
+  =========================================== -->
+  <div class="viewport-bg" id="viewportBg">
+    <!-- Tema 1: Cyber Neon City -->
+    <div class="bg-layer active" id="bg-0" style="background-image: url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=2000&auto=format&fit=crop');"></div>
+    <!-- Tema 2: Deep Space Nebula -->
+    <div class="bg-layer" id="bg-1" style="background-image: url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=2000&auto=format&fit=crop');"></div>
+    <!-- Tema 3: Tokyo Twilight / Sunset -->
+    <div class="bg-layer" id="bg-2" style="background-image: url('https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=2000&auto=format&fit=crop');"></div>
+    <!-- Tema 4: Abstract Glowing Flow -->
+    <div class="bg-layer" id="bg-3" style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2000&auto=format&fit=crop');"></div>
+  </div>
+
+  <div class="bg-overlay"></div>
+  <div class="tech-grid"></div>
+
+  <!-- Canvas de partículas flotantes -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- ==========================================
+       TARJETA PRINCIPAL CON EFECTO 3D TILT
+  =========================================== -->
+  <main class="login-container" id="cardContainer">
+    <div class="login-card" id="loginCard">
+      <!-- Brillo interactivo con las coordenadas del ratón -->
+      <div class="card-spotlight" id="cardSpotlight"></div>
+
+      <!-- Encabezado & Avatar Neón -->
+      <header class="header-area">
+        <div class="brand-avatar" id="avatarBadge" title="Identidad Segura">
+          <div class="avatar-pulse"></div>
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"></path>
+            <path d="M9 12l2 2 4-4"></path>
+          </svg>
+        </div>
+        <h1>Portal de Acceso</h1>
+        <p>Autentícate para ingresar al ecosistema protegido</p>
+      </header>
+
+      <!-- Formulario -->
+      <form id="loginForm" novalidate autocomplete="off">
+        
+        <!-- Campo: Usuario / Email -->
+        <div class="input-field" id="userInputGroup">
+          <div class="input-wrapper">
+            <input type="text" id="username" name="username" placeholder=" " required>
+            <label for="username">Usuario o Correo Electrónico</label>
+            <span class="field-icon-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+          </div>
+          <div class="input-error-msg" id="userError">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Por favor, escribe tu usuario o correo.</span>
+          </div>
+        </div>
+
+        <!-- Campo: Contraseña -->
+        <div class="input-field" id="passInputGroup">
+          <div class="input-wrapper" id="passWrapper">
+            <input type="password" id="password" name="password" placeholder=" " required>
+            <label for="password">Contraseña</label>
+            <span class="field-icon-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="lock-icon">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path class="lock-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <button type="button" class="btn-toggle-eye" id="togglePass" aria-label="Mostrar u ocultar contraseña">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <div class="input-error-msg" id="passError">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>La contraseña debe contener al menos 6 caracteres.</span>
+          </div>
+        </div>
+
+        <!-- Medidor Dinámico de Fuerza de Contraseña -->
+        <div class="strength-wrapper" id="strengthMeter">
+          <div class="strength-bars">
+            <div class="bar-segment"></div>
+            <div class="bar-segment"></div>
+            <div class="bar-segment"></div>
+          </div>
+          <div class="strength-info">
+            <span>Seguridad:</span>
+            <span class="strength-label" id="strengthText">Débil</span>
+          </div>
+        </div>
+
+        <!-- Opciones Extra -->
+        <div class="form-extras">
+          <label class="remember-label">
+            <input type="checkbox" id="rememberCheck">
+            <span class="custom-box">
+              <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            Recordarme
+          </label>
+          <a href="#" class="link-forgot" id="btnForgot">¿Olvidaste tu clave?</a>
+        </div>
+
+        <!-- Botón de Envío -->
+        <button type="submit" class="btn-login" id="submitLogin">
+          <span class="btn-text-content">Iniciar Sesión</span>
+          <span class="btn-spinner"></span>
+        </button>
+
+      </form>
+
+      <!-- Divisor Social -->
+      <div class="separator">
+        <span>o conecta con</span>
+      </div>
+
+      <!-- Botones de Redes Sociales -->
+      <div class="social-row">
+        <!-- Google -->
+        <button class="btn-social" type="button" title="Acceder con Google" aria-label="Google">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
+          </svg>
+        </button>
+        <!-- Apple -->
+        <button class="btn-social" type="button" title="Acceder con Apple" aria-label="Apple">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.92.04-2.02.62-2.66 1.37-.56.65-.89 1.71-.76 2.73 1.03.08 2.07-.5 2.5-1.25z"/>
+          </svg>
+        </button>
+        <!-- GitHub -->
+        <button class="btn-social" type="button" title="Acceder con GitHub" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <footer class="signup-footer">
+        ¿Nuevo por aquí? <a href="#" id="btnRegister">Crea una cuenta exclusiva</a>
+      </footer>
+    </div>
+  </main>
+
+  <!-- ==========================================
+       PANEL DE CONTROL FLOTANTE (FONDOS & PARTÍCULAS)
+  =========================================== -->
+  <aside class="ambient-controls">
+    <span class="controls-title">Ambiente:</span>
+    <div class="wallpaper-thumbs">
+      <button class="thumb-btn active" data-bg="0" title="Cyber Neon City">
+        <img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=120&auto=format&fit=crop" alt="Cyber">
+      </button>
+      <button class="thumb-btn" data-bg="1" title="Deep Space">
+        <img src="https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=120&auto=format&fit=crop" alt="Space">
+      </button>
+      <button class="thumb-btn" data-bg="2" title="Tokyo Sunset">
+        <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=120&auto=format&fit=crop" alt="Tokyo">
+      </button>
+      <button class="thumb-btn" data-bg="3" title="Abstract Flow">
+        <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=120&auto=format&fit=crop" alt="Abstract">
+      </button>
+    </div>
+
+    <button class="toggle-particles-btn active" id="btnToggleParticles" title="Activar/Desactivar Partículas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- ==========================================
+       NOTIFICACIONES TOAST FLOTANTES
+  =========================================== -->
+  <aside class="toast-box" id="toastElem">
+    <div class="toast-badge" id="toastBadge">
+      <!-- Icono inyectado dinámicamente -->
+    </div>
+    <div class="toast-text">
+      <h4 id="toastTitle">Acción</h4>
+      <p id="toastMessage">Mensaje informativo del sistema.</p>
+    </div>
+  </aside>
+
+  <!-- ==========================================
+       LÓGICA JAVASCRIPT ULTRA-REACTIVA
+  =========================================== -->
+  <script>
+    // Referencias al DOM
+    const viewportBg = document.getElementById('viewportBg');
+    const bgLayers = document.querySelectorAll('.bg-layer');
+    const thumbBtns = document.querySelectorAll('.thumb-btn');
+    const particleCanvas = document.getElementById('particleCanvas');
+    const btnToggleParticles = document.getElementById('btnToggleParticles');
+
+    const cardContainer = document.getElementById('cardContainer');
+    const loginCard = document.getElementById('loginCard');
+    const cardSpotlight = document.getElementById('cardSpotlight');
+    const loginForm = document.getElementById('loginForm');
+
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const passWrapper = document.getElementById('passWrapper');
+    const togglePassBtn = document.getElementById('togglePass');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const userInputGroup = document.getElementById('userInputGroup');
+    const passInputGroup = document.getElementById('passInputGroup');
+
+    const strengthMeter = document.getElementById('strengthMeter');
+    const strengthText = document.getElementById('strengthText');
+    const submitLogin = document.getElementById('submitLogin');
+
+    const toastElem = document.getElementById('toastElem');
+    const toastBadge = document.getElementById('toastBadge');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+
+    const btnForgot = document.getElementById('btnForgot');
+    const btnRegister = document.getElementById('btnRegister');
+
+    let toastTimer;
+
+    /* -------------------------------------------------------------
+       1. INTERACTIVIDAD PARALLAX & EFECTO 3D TILT EN LA TARJETA
+    -------------------------------------------------------------- */
+    let bounds;
+    function updateBounds() {
+      bounds = loginCard.getBoundingClientRect();
+    }
+    window.addEventListener('resize', updateBounds);
+    updateBounds();
+
+    window.addEventListener('mousemove', (e) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      // Parallax sutil en el fondo fotográfico
+      const moveX = (window.innerWidth / 2 - mouseX) * 0.025;
+      const moveY = (window.innerHeight / 2 - mouseY) * 0.025;
+      viewportBg.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+
+      // 3D Tilt e iluminación Spotlight sobre la tarjeta
+      if (bounds) {
+        const cardX = mouseX - bounds.left;
+        const cardY = mouseY - bounds.top;
+
+        // Actualizar posición de la luz
+        cardSpotlight.style.setProperty('--mouse-x', `${cardX}px`);
+        cardSpotlight.style.setProperty('--mouse-y', `${cardY}px`);
+
+        // Calcular ángulo de inclinación 3D
+        const centerX = bounds.width / 2;
+        const centerY = bounds.height / 2;
+        const tiltX = ((cardY - centerY) / centerY) * -9; // rotación en X
+        const tiltY = ((cardX - centerX) / centerX) * 9;  // rotación en Y
+
+        loginCard.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.01, 1.01, 1.01)`;
+      }
+    });
+
+    // Restaurar inclinación al salir el ratón
+    document.addEventListener('mouseleave', () => {
+      loginCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      viewportBg.style.transform = 'translate3d(0, 0, 0)';
+    });
+
+    /* -------------------------------------------------------------
+       2. CAMBIO DE FONDOS DE PANTALLA DINÁMICOS
+    -------------------------------------------------------------- */
+    thumbBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        thumbBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const index = btn.getAttribute('data-bg');
+        bgLayers.forEach(layer => layer.classList.remove('active'));
+        const targetLayer = document.getElementById(`bg-${index}`);
+        if (targetLayer) {
+          targetLayer.classList.add('active');
+        }
+      });
+    });
+
+    /* -------------------------------------------------------------
+       3. SISTEMA DE PARTÍCULAS INTERACTIVAS (CANVAS HTML5)
+    -------------------------------------------------------------- */
+    const ctx = particleCanvas.getContext('2d');
+    let particlesArray = [];
+    let particlesEnabled = true;
+
+    function resizeCanvas() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * particleCanvas.width;
+        this.y = Math.random() * particleCanvas.height;
+        this.size = Math.random() * 2.2 + 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.45;
+        this.speedY = -Math.random() * 0.7 - 0.2;
+        this.alpha = Math.random() * 0.6 + 0.2;
+        this.color = Math.random() > 0.4 ? 'rgba(6, 182, 212, ' : 'rgba(99, 102, 241, ';
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // Reiniciar si sale de la pantalla
+        if (this.y < 0 || this.x < 0 || this.x > particleCanvas.width) {
+          this.reset();
+          this.y = particleCanvas.height + 10;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.color + this.alpha + ')';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particlesArray = [];
+      const count = Math.min(Math.floor(window.innerWidth / 16), 75);
+      for (let i = 0; i < count; i++) {
+        particlesArray.push(new Particle());
+      }
+    }
+    initParticles();
+
+    function animateParticles() {
+      if (particlesEnabled) {
+        ctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        for (let i = 0; i < particlesArray.length; i++) {
+          particlesArray[i].update();
+          particlesArray[i].draw();
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    btnToggleParticles.addEventListener('click', () => {
+      particlesEnabled = !particlesEnabled;
+      btnToggleParticles.classList.toggle('active', particlesEnabled);
+      particleCanvas.style.opacity = particlesEnabled ? '1' : '0';
+      showToast(
+        'success',
+        particlesEnabled ? 'Partículas activadas' : 'Partículas pausadas',
+        particlesEnabled ? 'Efecto ambiental reactivado.' : 'Rendimiento optimizado al máximo.'
+      );
+    });
+
+    /* -------------------------------------------------------------
+       4. MOSTRAR / OCULTAR CONTRASEÑA
+    -------------------------------------------------------------- */
+    togglePassBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+      if (isPassword) {
+        // Ojo tachado (ocultar)
+        eyeIcon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round" stroke-linejoin="round"/>
+        `;
+      } else {
+        // Ojo normal (mostrar)
+        eyeIcon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+    });
+
+    /* -------------------------------------------------------------
+       5. MEDIDOR DINÁMICO DE FUERZA DE CONTRASEÑA
+    -------------------------------------------------------------- */
+    passwordInput.addEventListener('input', () => {
+      const val = passwordInput.value;
+
+      if (val.length > 0) {
+        strengthMeter.classList.add('visible');
+      } else {
+        strengthMeter.classList.remove('visible');
+      }
+
+      // Evaluación de seguridad
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val) && val.length >= 8) score++;
+
+      strengthMeter.classList.remove('strength-weak', 'strength-fair', 'strength-strong');
+
+      if (score <= 1) {
+        strengthMeter.classList.add('strength-weak');
+        strengthText.textContent = 'Débil';
+      } else if (score === 2) {
+        strengthMeter.classList.add('strength-fair');
+        strengthText.textContent = 'Media';
+      } else {
+        strengthMeter.classList.add('strength-strong');
+        strengthText.textContent = 'Fuerte';
+      }
+
+      // Quitar estado de error al escribir
+      if (passInputGroup.classList.contains('has-error') && val.length >= 6) {
+        passInputGroup.classList.remove('has-error');
+      }
+    });
+
+    usernameInput.addEventListener('input', () => {
+      if (userInputGroup.classList.contains('has-error') && usernameInput.value.trim() !== '') {
+        userInputGroup.classList.remove('has-error');
+      }
+    });
+
+    /* -------------------------------------------------------------
+       6. SISTEMA DE NOTIFICACIONES TOAST
+    -------------------------------------------------------------- */
+    function showToast(type, title, message) {
+      clearTimeout(toastTimer);
+
+      toastElem.className = 'toast-box ' + type;
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+
+      if (type === 'success') {
+        toastBadge.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+      } else {
+        toastBadge.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        `;
+      }
+
+      toastElem.classList.add('show');
+      toastTimer = setTimeout(() => {
+        toastElem.classList.remove('show');
+      }, 4200);
+    }
+
+    /* -------------------------------------------------------------
+       7. ENVÍO, VALIDACIÓN Y CELEBRACIÓN CON CONFETTI
+    -------------------------------------------------------------- */
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      let valid = true;
+      const user = usernameInput.value.trim();
+      const pass = passwordInput.value;
+
+      if (!user) {
+        userInputGroup.classList.add('has-error');
+        valid = false;
+      } else {
+        userInputGroup.classList.remove('has-error');
+      }
+
+      if (!pass || pass.length < 6) {
+        passInputGroup.classList.add('has-error');
+        valid = false;
+      } else {
+        passInputGroup.classList.remove('has-error');
+      }
+
+      if (!valid) {
+        loginCard.classList.remove('shake-anim');
+        void loginCard.offsetWidth; // Forzar reflow para reiniciar la animación
+        loginCard.classList.add('shake-anim');
+        showToast('error', 'Credenciales incompletas', 'Verifica tu usuario y contraseña antes de proseguir.');
+        return;
+      }
+
+      // Animación de estado de carga
+      submitLogin.classList.add('loading');
+
+      setTimeout(() => {
+        submitLogin.classList.remove('loading');
+
+        // Lanzamiento de Confetti dinámico
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 85,
+            spread: 70,
+            origin: { y: 0.65 },
+            colors: ['#6366f1', '#06b6d4', '#ec4899', '#ffffff']
+          });
+        }
+
+        showToast(
+          'success',
+          '¡Sesión iniciada con éxito!',
+          `Bienvenido de vuelta, ${user}. Preparando tu panel de control...`
+        );
+
+        usernameInput.blur();
+        passwordInput.blur();
+      }, 1500);
+    });
+
+    // Enlaces adicionales
+    btnForgot.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('success', 'Recuperación de cuenta', 'Hemos enviado el enlace de restablecimiento a tu bandeja.');
+    });
+
+    btnRegister.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('success', 'Registro rápido', 'Redirigiendo a la pantalla de creación de credenciales.');
+    });
+  </script>
 </body>
 </html>
